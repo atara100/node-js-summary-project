@@ -22,7 +22,7 @@ async function createRequest(req, res) {
         const user = value;
         if (error) {
             console.log(chalk.red(error));
-            res.status(400).send(error)
+            res.status(400).send("Password must contain 9 charters, at least 1 capital letter and at least 1 lower-case letter, at least special charter and at least 4 numbers")
         }
         else {
             try {
@@ -69,6 +69,7 @@ async function createRequest(req, res) {
         const { error, value } = userSchema.auth.validate(req.body);
         const user = value;
         if (error) {
+            console.log(chalk.red(error));
             res.status(400).send(error)
         }
         else{

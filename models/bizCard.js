@@ -2,9 +2,6 @@ const mongoose = require('mongoose');
 const _ = require('lodash');
 const { date } = require('joi');
 
-// const Joi = require('@hapi/joi');
-//const validator = require('validator');
-
 const bizCardSchema = mongoose.Schema({
     bizName: {type:String,
        required:true,
@@ -27,8 +24,7 @@ const bizCardSchema = mongoose.Schema({
        minlength: 11,
        maxlength: 1025},
     creator_id:{type:String},
-    //user_id:{type:mongoose.Schema.Types.ObjectId,ref:'User'},
-    user_id:{type:String},
+    user_id:{type:mongoose.Schema.Types.ObjectId,ref:'users'},
     bizNumber:{type:Number,
        required:true,
        minlength: 3,
@@ -36,9 +32,8 @@ const bizCardSchema = mongoose.Schema({
       uniqe:true
     },
     createdAt:{type:Date},
-    likes:{type:Array}
-    
-  });
+    likes:Array
+     });
 
 
 

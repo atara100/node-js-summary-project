@@ -16,7 +16,8 @@ const userSchema = mongoose.Schema({
     password: {type:String, required: true},
     biz: {type:Boolean, default: false},
     admin:{type:Boolean, default: false},
-    createdAt: {type:Date, default: new Date()}},
+    createdAt: {type:Date, default: new Date()},
+    likes:Array},   
     {
       methods:{
           async checkPassword(password){

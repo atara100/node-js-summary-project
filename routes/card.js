@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const checkToken=require('../middleware/checkToken');
- require('../models/user');
+ const User=require('../models/user');
 const cardSchema = require('../validators/card');
 const BizCardModel = require('../models/bizCard');
 const random=require('../models/bizCard');
 const _ = require('lodash');
-const chalk=require('chalk');
-let likesArr=["gf","hsd"];
+const cardValidate=require('../validators/card');
 
 
 //section 7
@@ -22,6 +21,7 @@ let likesArr=["gf","hsd"];
         }
     }
 //end section 7
+
 
 //section 8
     router.get("/getAllBizCards/:id",getBizCardsWithId)
@@ -68,9 +68,10 @@ let likesArr=["gf","hsd"];
             return;
          }
         
-     const { error } = cardSchema.newCard.validate(req.body);;
+     const { error } = cardSchema.newCard.validate(req.body);
        if (error){
         res.status(400).send(error)
+        return;
        }
 
     let card = new BizCardModel(
@@ -83,7 +84,7 @@ let likesArr=["gf","hsd"];
           bizNumber: await random.randomBizNumber(BizCardModel),
           user_id: req.userId,
           createdAt: new Date(),
-          likes: likesArr
+          likes: req.body.likes ? req.body.likes : []
         }
       );
  
@@ -110,12 +111,14 @@ let likesArr=["gf","hsd"];
 
      const { error } = cardSchema.newCard.validate(req.body);;
        if (error){
-        res.status(400).send(error)
         console.log(error);
+        res.status(400).send(error)
+        return;
        }
 
          let editCard = await BizCardModel.findOneAndUpdate({ _id: req.params.cardId, user_id: req.userId }, req.body);
          if (!editCard) return res.status(404).send('The card with the given ID was not found.');
+         res.status(200).send("The card id update");
 
          const filter={
           _id: req.params.cardId,
@@ -153,6 +156,72 @@ let likesArr=["gf","hsd"];
     }
  }
 //end section 12
+
+
+//section 13  
+      router.patch("/likes/:cardId",checkToken,likes)
+
+      async function likes(req,res){
+        try{
+          const { error } = cardValidate.validateCards(req.body);
+         if (error){
+         res.status(400).send(error.details[0].message);
+         return;
+         } 
+
+    //test if the arr from the user contaun only users id
+        const idArr=req.body.likes;
+        try{
+          for (let i = 0; i < idArr.length; i++) {
+           let usid= await BizCardModel.find({user_id: idArr[i] })
+             if(usid) console.log("ok");                         
+          };
+        }catch(err){
+           res.status(400).send("Arr must contain only users id");
+           return;
+        }
+        
+         const findCard=await BizCardModel.findOne({_id: req.params.cardId})
+         if(!findCard){
+          console.log("Id number don't match");
+          res.status(400).send("Id number don't match");
+          return;
+         }
+         findCard.likes=req.body.likes;
+         await findCard.save();
+         res.status(200).send(findCard);
+         
+        } catch(err){
+           res.status(400).send(err);
+           return;
+        }  
+      }
+//end dection 13
+
+
+//bonus
+      router.patch("/numCardByAdmin/:cardNum",checkToken,numCardByAdmin)
+
+      async function numCardByAdmin(req,res){
+        try{
+         if(!req.admin){
+           res.status(400).send("you are not admin😥");
+           return;
+         }
+         const findnumcard=await BizCardModel.find({bizNumber: req.body.bizNumber});
+         if(findnumcard.length==1){
+          res.status(400).send("The number in use🤦🏻‍♀️");
+          return;
+         }
+         const editNumCard=await BizCardModel.findOne({_id: req.params.cardNum})
+         editNumCard.bizNumber=req.body.bizNumber;
+         editNumCard.save();
+         res.status(200).send (editNumCard);
+        }catch(err){
+          res.status(400).send(err);
+        }
+      }
+//end bonus
 
 
    module.exports = router;
